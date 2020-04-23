@@ -1,0 +1,15 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Tests",
+            "group": "test",
+            "type": "shell",
+            "command": "nimble",
+            "args": ["test"],
+            "options": {
+                "cwd": "${workspaceRoot}"
+            }
+        }
+    ]
+}
