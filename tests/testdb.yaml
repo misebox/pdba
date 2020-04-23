@@ -1,9 +1,3 @@
-dbinfo:
-  dbname: dbtest
-  host: localhost
-  port: 1111
-  user: dbuser
-  pass: secret
 tables:
   - name: category
     table_name: categories
