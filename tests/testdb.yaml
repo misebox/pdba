@@ -1,0 +1,31 @@
+dbinfo:
+  dbname: dbtest
+  host: localhost
+  port: 1111
+  user: dbuser
+  pass: secret
+tables:
+  - name: category
+    table_name: categories
+    columns:
+      - {name: id, dbtype: integer, default: nextval('categories_id_seq')}
+      - {name: name, dbtype: varchar(30)} 
+      - {name: memo, dbtype: varchar(100), nullable: true}
+    primary_keys:
+      - id
+  - name: task
+    table_name: tasks
+    columns:
+      - {name: id, dbtype: serial}
+      - {name: category_id, dbtype: integer, nullable: true}
+      - {name: name, dbtype: varchar(30)}
+      - {name: description, dbtype: varchar(200)}
+    primary_keys:
+      - id
+    unique:
+      - ["name", "description"]
+    foreign_keys:
+      - reftable: category
+        cols: ["category_id"]
+        refcols: ["id"]
+        ondelete: set null

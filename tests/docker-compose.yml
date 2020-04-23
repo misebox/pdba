@@ -1,0 +1,13 @@
+version: '3.7'
+services:
+  db:
+    image: postgres:latest
+    environment:
+      PGDATA: /var/lib/postgresql/data
+      POSTGRES_DB: dbtest
+      POSTGRES_USER: dbuser
+      POSTGRES_PASSWORD: dbpass
+    ports:
+     - "1111:5432"
+    # volumes:
+    #  - ./data:/var/lib/postgresql/data
