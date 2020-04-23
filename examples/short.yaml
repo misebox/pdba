@@ -1,0 +1,27 @@
+tables:
+  - name: category
+    table_name: categories
+    columns:
+      - {name: id, dbtype: serial}
+      - {name: name, dbtype: varchar(30)}
+      - {name: memo, dbtype: varchar(100), nullable: true}
+    primary_keys:
+      - id
+    unique:
+      - ["name"]
+  - name: task
+    table_name: tasks
+    columns:
+      - {name: id, dbtype: serial}
+      - {name: category_id, dbtype: integer, nullable: true}
+      - {name: name, dbtype: varchar(30)}
+      - {name: description, dbtype: varchar(200)}
+    primary_keys:
+      - id
+    unique:
+      - ["name"]
+    foreign_keys:
+      - reftable: category
+        cols: ["category_id"]
+        refcols: ["id"]
+        ondelete: set null
