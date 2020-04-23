@@ -1,59 +1,53 @@
-import strformat
-import tables
-import sequtils
-import db_common
-import options
 import pdba
 
 var
-  # Load schema
+  ## Load schema
   q = loadDBYaml("examples/short.yaml")
-  # QConn
+
+  ## Connect to DB
   conn = q.connect(host="localhost", port="15432", dbname="dbexample", user="dbuser", pass="dbpass")
+
+  ## Table objects (QTbl)
   tCat = q.tbl["category"]
   tTask = q.tbl["task"]
 
-echo toSeq(q.tbl.keys)
-
-## DDL
-conn.exec tTask.sqlDropTable
-conn.exec tCat.sqlDropTable
+## Create tables
 conn.exec tCat.sqlCreateTable
 conn.exec tTask.sqlCreateTable
 
-## DML
-block:
-  ## just insert
+## Just insert
+for i in 1..3:
   var qi = tCat.insert
-  qi["name"] = "programming"
-  qi["memo"] = "Implement something"
+  qi["name"] = "category " & $i
+  qi["memo"] = "memo " & $i
   conn.exec qi
-
-  ## insert and get row
-  qi["name"] = "find job"
-  qi["memo"] = "finding job"
-  var row = conn.getRow qi
-  echo row.type
-  if row.isSome:
-    echo row.get
-
 block:
   var qi = tTask.insert
   qi["category_id"] = 1
   qi["name"] = "taskA"
   qi["description"] = "desc1"
   conn.exec qi
-
-  qi["category_id"] = 1  # foreign key
+block:
+  var qi = tTask.insert
+  qi["category_id"] = 1
   qi["name"] = "taskB"
   qi["description"] = "desc2"
   conn.exec qi
 
-  var qu = tTask.update
-  qu = qu.where qu.table.cols["name"] == "taskB"
-  qu["category_id"] = 2
-  qu["name"] = "taskBBBB"
-  qu["description"] = "desc2222"
+## Insert and get data
+block:
+  var qi = tCat.insert
+  qi["name"] = "dummy name"
+  qi["memo"] = "dummy memo"
+  var row = conn.getRow qi
+  echo row.type
+  if row.isSome:
+      echo row.get
+
+## Update
+block:
+  var qu = tCat.update.where tCat.cols["name"] == "category_3"
+  qu["memo"] = "updated memo"
   conn.exec qu
 
 ## Select
@@ -66,8 +60,8 @@ for row in conn.getAllRows tCat.query:
   echo row
 
 ## Delete
-conn.exec tCat.delete.where(tCat.cols["id"] == 1)
-for row in conn.getAllRows(tCat.query):
+conn.exec tTask.delete.where(tTask.cols["id"] == 1)
+for row in conn.getAllRows(tTask.query):
   echo row
 
 ## drop table

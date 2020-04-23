@@ -1,6 +1,4 @@
-import ndb/postgres
 import pdba
-import os
 
 block:
   var
