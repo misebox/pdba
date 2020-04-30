@@ -44,6 +44,7 @@ type
     tbl*: OrderedTable[string, QTbl]
     pool*: Deque[QConn]
     poolSize*: int
+    timeout*: int
 
   QCondKind* = enum
     ckNone,

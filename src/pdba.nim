@@ -1,3 +1,4 @@
+import os
 import strformat
 import db_common
 import yaml/serialization
@@ -29,7 +30,7 @@ export loadyaml
 
 proc initQDB*(host="127.0.0.1", port="1111",
               dbname="dbtest", user="dbuser", pass="secret",
-              poolSize=3): QDB =
+              poolSize=3, timeout=10000): QDB =
   QDB(
     host: host,
     port: port,
@@ -37,12 +38,29 @@ proc initQDB*(host="127.0.0.1", port="1111",
     user: user,
     pass: pass,
     pool: initDeque[QConn](),
-    poolSize: poolSize
+    poolSize: poolSize,
+    timeout: timeout
   )
 
 proc connect*(q: QDB, host: string, port: string,
               dbname: string, user: string, pass: string): QConn=
-  let conn = open(fmt"{host}:{port}", user, pass, dbname)
+  let startTime = epochTime()
+  var conn: DbConn = nil
+  while true:
+    try:
+      conn = open(fmt"{host}:{port}", user, pass, dbname)
+      break
+    except DbError:
+      discard
+    if (epochTime() - startTime) <= (q.timeout / 1000):
+      os.sleep(100)
+      debug("Retry to connect")
+      continue
+  if conn == nil:
+    var e: ref DbError
+    new(e)
+    e.msg = "Connection timeout"
+    raise e
   QConn(dbconn: conn)
 
 proc connect*(q: QDB): QConn =
@@ -57,10 +75,11 @@ proc connect*(q: QDB): QConn =
       except DbError:
         discard q.pool.popFirst
   # New Connection
-  result = q.connect(host=q.host, port=q.port,
+  let conn = q.connect(host=q.host, port=q.port,
                        dbname=q.dbname, user=q.user, pass=q.pass)
   if q.poolSize > 0:
-    q.pool.addLast(result)
+    q.pool.addLast(conn)
+  conn
 
 proc exec*(conn: QConn, s: SqlQuery, args: varargs[DbValue, dbValue]) =
   logger.log(lvlDebug, "exec: " & $s & ", " & $args)
