@@ -42,9 +42,10 @@ type
     user*: string
     pass*: string
     tbl*: OrderedTable[string, QTbl]
-    pool*: Deque[QConn]
+    pool*: seq[QConn]
     poolSize*: int
     timeout*: int
+    poolCursor*: Natural
 
   QCondKind* = enum
     ckNone,

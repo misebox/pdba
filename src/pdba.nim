@@ -37,7 +37,7 @@ proc initQDB*(host="127.0.0.1", port="1111",
     dbname: dbname,
     user: user,
     pass: pass,
-    pool: initDeque[QConn](),
+    pool: newSeq[QConn](),
     poolSize: poolSize,
     timeout: timeout
   )
@@ -67,18 +67,20 @@ proc connect*(q: QDB): QConn =
   # Use pool
   if q.pool.len >= q.poolSize:
     while q.pool.len > 0:
+      var c = q.pool[q.poolCursor]
       try:
         # Ping to DB
-        var opt = q.pool.peekFirst.dbconn.getRow SqlQuery("SELECT 1")
+        var opt = c.dbconn.getRow SqlQuery("SELECT 1")
         if opt.isSome and opt.get[0].i == 1:
-          return q.pool.peekFirst
+          q.poolCursor = (q.poolCursor + 1) mod q.pool.len
+          return c
       except DbError:
-        discard q.pool.popFirst
+        q.pool.delete(q.poolCursor)
   # New Connection
   let conn = q.connect(host=q.host, port=q.port,
                        dbname=q.dbname, user=q.user, pass=q.pass)
-  if q.poolSize > 0:
-    q.pool.addLast(conn)
+  if q.pool.len < q.poolSize:
+    q.pool.add(conn)
   conn
 
 proc exec*(conn: QConn, s: SqlQuery, args: varargs[DbValue, dbValue]) =
