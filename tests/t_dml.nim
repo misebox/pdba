@@ -20,15 +20,17 @@ suite "dbcore/dml":
     echo $qu
     assert $qu == ""
     qu["name"] = "Category2"
-    qu = qu.where(t1.cols["id"] == 2)
-    echo $qu
-    assert $qu == "UPDATE categories SET name = 'Category2' WHERE id = 2;"
+    var quw = qu.where(t1.cols["id"] == 2)
+    echo $quw
+    assert $quw == "UPDATE categories SET name = 'Category2' WHERE id = 2;"
+    assert $quw == qu.byId(2)
 
   test "QDelete":
     var qd = t1.delete
     echo $qd
     assert $qd == ""
-    qd = qd.where(t1.cols["id"] == 2)
-    echo $qd
-    assert $qd == "DELETE FROM categories WHERE id = 2;"
+    var qdw = qd.where(t1.cols["id"] == 2)
+    echo $qdw
+    assert $qdw == "DELETE FROM categories WHERE id = 2;"
+    assert $qdw == $qd.byId(2)
 
