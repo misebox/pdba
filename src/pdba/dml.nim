@@ -73,6 +73,10 @@ proc where*(qu: QUpdate, c: QCond): QUpdate =
   result = qu
   result.cond = c
 
+# Shorthand method
+proc byId*(qu: QUpdate, id: int): QUpdate =
+  qu.where qu.table.cols["id"] == id
+
 proc `$`*(qu: QUpdate): string =
   if qu.data.len == 0 or qu.cond.kind == QCondKind.ckNone:
     return ""
@@ -102,6 +106,10 @@ template c*(qu: QDelete, c: untyped): QCol =
 proc where*(qu: QDelete, c: QCond): QDelete =
   result = qu
   result.cond = c
+
+# Shorthand method
+proc byId*(qd: QDelete, id: int): QDelete =
+  qd.where qd.table.cols["id"] == id
 
 proc `$`*(qu: QDelete): string =
   if qu.cond.kind == QCondKind.ckNone:
