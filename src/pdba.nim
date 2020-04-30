@@ -63,7 +63,7 @@ proc connect*(q: QDB, host: string, port: string,
     raise e
   QConn(dbconn: conn)
 
-proc connect*(q: QDB): QConn =
+proc connect*(q: var QDB): QConn =
   # Use pool
   if q.pool.len >= q.poolSize:
     while q.pool.len > 0:

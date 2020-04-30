@@ -23,7 +23,7 @@ suite "dbcore/dml":
     var quw = qu.where(t1.cols["id"] == 2)
     echo $quw
     assert $quw == "UPDATE categories SET name = 'Category2' WHERE id = 2;"
-    assert $quw == qu.byId(2)
+    assert $quw == $qu.byId(2)
 
   test "QDelete":
     var qd = t1.delete
@@ -33,4 +33,3 @@ suite "dbcore/dml":
     echo $qdw
     assert $qdw == "DELETE FROM categories WHERE id = 2;"
     assert $qdw == $qd.byId(2)
-
