@@ -68,6 +68,9 @@ proc getAllRows*(conn: QConn, query: QSelect, args: varargs[DbValue, dbValue]): 
     rows.add(toQRow(r, query))
   QResultSet(rows: rows)
 
+proc `[]`*(row: QRow, key: string): DbValue =
+  row.fields[key]
+
 iterator items*(rs: QResultSet): QRow =
   for row in rs.rows:
     yield row
