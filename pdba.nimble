@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.2.1"
+version       = "0.2.2"
 author        = "misebox"
 description   = "A postgres DB adapter for nim."
 license       = "MIT"
