@@ -32,6 +32,9 @@ type
     cols*: OrderedTable[string, QCol]
     foreign_keys*: seq[QForeignKey]
 
+  QConn* = ref object
+    dbconn*: DbConn
+
   QDB* = ref object
     dbname*: string
     host*: string
@@ -39,6 +42,8 @@ type
     user*: string
     pass*: string
     tbl*: OrderedTable[string, QTbl]
+    pool*: Deque[QConn]
+    poolSize*: int
 
   QCondKind* = enum
     ckNone,
@@ -116,9 +121,6 @@ type
     cond*: QCond
 
 type
-  QConn* = object
-    dbconn*: DbConn
-
   QResultSet* = object
     rows*: seq[QRow]
 

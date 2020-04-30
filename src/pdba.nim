@@ -27,21 +27,40 @@ export condition
 export loadyaml
 
 
-proc initQDB*(host="127.0.0.1", port="1111", dbname="dbtest", user="dbuser", pass="secret"): QDB =
+proc initQDB*(host="127.0.0.1", port="1111",
+              dbname="dbtest", user="dbuser", pass="secret",
+              poolSize=3): QDB =
   QDB(
     host: host,
     port: port,
     dbname: dbname,
     user: user,
     pass: pass,
+    pool: initDeque[QConn](),
+    poolSize: poolSize
   )
 
-proc connect*(q: QDB, host: string, port: string, dbname: string, user: string, pass: string): QConn=
+proc connect*(q: QDB, host: string, port: string,
+              dbname: string, user: string, pass: string): QConn=
   let conn = open(fmt"{host}:{port}", user, pass, dbname)
   QConn(dbconn: conn)
 
 proc connect*(q: QDB): QConn =
-  q.connect(host=q.host, port=q.port, dbname=q.dbname, user=q.user, pass=q.pass)
+  # Use pool
+  if q.pool.len >= q.poolSize:
+    while q.pool.len > 0:
+      try:
+        # Ping to DB
+        var opt = q.pool.peekFirst.dbconn.getRow SqlQuery("SELECT 1")
+        if opt.isSome and opt.get[0].i == 1:
+          return q.pool.peekFirst
+      except DbError:
+        discard q.pool.popFirst
+  # New Connection
+  result = q.connect(host=q.host, port=q.port,
+                       dbname=q.dbname, user=q.user, pass=q.pass)
+  if q.poolSize > 0:
+    q.pool.addLast(result)
 
 proc exec*(conn: QConn, s: SqlQuery, args: varargs[DbValue, dbValue]) =
   logger.log(lvlDebug, "exec: " & $s & ", " & $args)
