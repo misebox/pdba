@@ -16,23 +16,24 @@ conn.exec tCat.sqlCreateTable
 conn.exec tTask.sqlCreateTable
 
 ## Just insert
-for i in 1..3:
-  var qi = tCat.insert
-  qi["name"] = "category " & $i
-  qi["memo"] = "memo " & $i
-  conn.exec qi
-block:
-  var qi = tTask.insert
-  qi["category_id"] = 1
-  qi["name"] = "taskA"
-  qi["description"] = "desc1"
-  conn.exec qi
-block:
-  var qi = tTask.insert
-  qi["category_id"] = 1
-  qi["name"] = "taskB"
-  qi["description"] = "desc2"
-  conn.exec qi
+conn.withTransaction:
+  for i in 1..3:
+    var qi = tCat.insert
+    qi["name"] = "category " & $i
+    qi["memo"] = "memo " & $i
+    conn.exec qi
+  block:
+    var qi = tTask.insert
+    qi["category_id"] = 1
+    qi["name"] = "taskA"
+    qi["description"] = "desc1"
+    conn.exec qi
+  block:
+    var qi = tTask.insert
+    qi["category_id"] = 1
+    qi["name"] = "taskB"
+    qi["description"] = "desc2"
+    conn.exec qi
 
 ## Insert and get data
 block:
@@ -60,9 +61,14 @@ for row in conn.getAllRows tCat.query:
   echo row
 
 ## Delete
+conn.begin
 conn.exec tTask.delete.where(tTask.cols["id"] == 1)
-for row in conn.getAllRows(tTask.query):
-  echo row
+var opt = conn.getRow(tTask.query.where(tTask.cols["id"] == 1))
+echo opt.isSome
+conn.rollback
+opt = conn.getRow(tTask.query.where(tTask.cols["id"] == 1))
+if opt.isSome:
+  echo opt.get
 
 ## drop table
 conn.exec tTask.sqlDropTable

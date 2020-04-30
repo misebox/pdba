@@ -17,6 +17,7 @@ export options
 export postgres.DbConn
 export postgres.open
 export db_common.SqlQuery
+export db_common.DbError
 
 export types
 export query
@@ -39,7 +40,7 @@ proc connect*(q: QDB, host: string, port: string, dbname: string, user: string, 
   let conn = open(fmt"{host}:{port}", user, pass, dbname)
   QConn(dbconn: conn)
 
-proc connect*(q: QDB): QConn=
+proc connect*(q: QDB): QConn =
   q.connect(host=q.host, port=q.port, dbname=q.dbname, user=q.user, pass=q.pass)
 
 proc exec*(conn: QConn, s: SqlQuery, args: varargs[DbValue, dbValue]) =
@@ -49,3 +50,22 @@ proc exec*(conn: QConn, s: SqlQuery, args: varargs[DbValue, dbValue]) =
 proc exec*[T: QSelect|QInsertOne|QUpdate|QDelete](conn: QConn, q: T) =
   conn.exec q.toSql
 
+proc close*(c: QConn) =
+  c.close
+
+proc begin*(c: QConn) =
+  c.exec "begin;".toSql
+
+proc commit*(c: QConn) =
+  c.exec "commit;".toSql
+
+proc rollback*(c: QConn) =
+  c.exec "rollback;".toSql
+
+template withTransaction*(c: QConn, body: untyped): untyped =
+  c.begin
+  try:
+    body
+    c.commit
+  except:
+    c.rollback
